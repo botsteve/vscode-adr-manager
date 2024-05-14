@@ -1,6 +1,6 @@
 <template>
-	<div id="container">
-		<div id="adr-box" :class="adr.adr.conforming ? 'conforming' : 'not-conforming'">
+	<div id="container" :class="getStatusClass(adr.adr.status)">
+		<div id="adr-box" :class="[adr.adr.conforming ? 'conforming' : 'not-conforming']">
 			<div class="adr-info">
 				<h3>{{ adr.adr.title ? getAdrNumber + ": " + adr.adr.title : "(No title)" }}</h3>
 				<h5>
@@ -20,81 +20,121 @@
 </template>
 
 <script lang="ts">
-	import { defineComponent } from "vue";
+import { defineComponent } from "vue";
 
-	export default defineComponent({
-		name: "ADRContainer",
-		props: {
-			adr: {
-				type: Object,
-				required: true,
-			},
+export default defineComponent({
+	name: "ADRContainer",
+	props: {
+		adr: {
+			type: Object,
+			required: true,
 		},
-		computed: {
-			/**
-			 * Returns the number of the ADR.
-			 */
-			getAdrNumber() {
-				return `#${this.adr.fileName.substring(0, 4)}`;
-			},
-		},
-	});
+	},
+	computed: {
+		/**
+		 * Returns the number of the ADR.
+		 */
+		getAdrNumber() {
+			return `#${this.adr.fileName.substring(0, 4)}`;
+		}
+	},
+	methods: {
+		getStatusClass(status: string) {
+			let lowerCaseStatus = status.toLowerCase();
+			switch (lowerCaseStatus) {
+				case 'accepted':
+					return 'status-accepted';
+				case 'rejected':
+					return 'status-rejected';
+				case 'proposed':
+					return 'status-proposed';
+				case 'superseded':
+					return 'status-superseded';
+				default:
+					return ''; // Default class if status is undefined or unknown
+			}
+		}
+	}
+});
 </script>
 
 <style lang="scss" scoped>
-	@use "../static/mixins.scss" as *;
+@use "../static/mixins.scss" as *;
 
-	#adr-box {
-		@include centered-flex(row);
-		width: 100%;
-		justify-content: space-between;
-		margin: 1rem 0;
-		padding: 0 1rem;
-		background: var(--vscode-textBlockQuote-background);
+#adr-box {
+	@include centered-flex(row);
+	width: 100%;
+	justify-content: space-between;
+	margin: 1rem 0;
+	padding: 0 1rem;
+}
+
+.adr-info {
+	& h3 {
+		margin-top: 10px;
 	}
 
-	.adr-info {
-		& h3 {
-			margin-top: 10px;
-		}
-		& h5 {
-			margin-bottom: 10px;
-		}
+	& h5 {
+		margin-bottom: 10px;
+	}
+}
+
+.conforming {
+	border: 1.5px solid var(--vscode-descriptionForeground);
+}
+
+.not-conforming {
+	border: 1.5px solid var(--vscode-editorError-foreground);
+}
+
+.not-conforming-message {
+	color: var(--vscode-editorError-foreground);
+	margin: -0.75rem 0 1rem 0;
+}
+
+.button-group {
+	@include centered-flex(row);
+}
+
+
+.status-accepted {
+	background-color: #4CAF50;
+	color: white;
+}
+
+.status-rejected {
+	background-color: #d32f2f;
+	color: white;
+}
+
+.status-proposed {
+	background-color: #FF8C00;
+	color: white;
+}
+
+.status-superseded {
+	background-color: #607D8B;
+	color: white;
+}
+
+button {
+	margin: 1rem;
+	padding: 0.5rem 1rem;
+	width: fit-content;
+	min-width: 73px;
+	@include button-styling;
+
+	&#delete {
+		background: var(--vscode-editorError-foreground);
 	}
 
-	.conforming {
-		border: 1.5px solid var(--vscode-descriptionForeground);
+	&#view {
+		background: var(--vscode-button-background);
 	}
 
-	.not-conforming {
-		border: 1.5px solid var(--vscode-editorError-foreground);
+	&:disabled {
+		filter: brightness(50%);
+		cursor: default;
 	}
-
-	.not-conforming-message {
-		color: var(--vscode-editorError-foreground);
-		margin: -0.75rem 0 1rem 0;
-	}
-
-	.button-group {
-		@include centered-flex(row);
-	}
-
-	button {
-		margin: 1rem;
-		padding: 0.5rem 1rem;
-		width: fit-content;
-		min-width: 73px;
-		@include button-styling;
-
-		&#delete {
-			background: var(--vscode-editorError-foreground);
-		}
-		&#view {
-			background: var(--vscode-button-background);
-		}
-		&:disabled {
-			filter: brightness(50%);
-			cursor: default;
-		}
-	}
+}
 </style>
